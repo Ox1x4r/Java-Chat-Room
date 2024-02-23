@@ -63,9 +63,3 @@ If [] are present, replace with required text.
 /kick [ID]
 ```
 
-## Authors
-
-Nojus F <br />
-Joana J <br />
-Akram T S <br />
-Ernestas A <br />
