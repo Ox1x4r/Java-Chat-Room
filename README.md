@@ -1,65 +1,107 @@
 # Java TCP Chat Room
 
-# Table of Contents
-1. [Description](#Description)
-2. [Getting Started](#Getting-Started)
-3. [Help](#Help)
-4. [Authors](#Authors)  
+A multi-user group chat built on raw Java TCP sockets. The server accepts any
+number of clients on a thread pool and broadcasts timestamped messages to
+everyone connected. Clients run in the terminal.
 
+## Contents
 
-## Description
+- [Features](#features)
+- [Requirements](#requirements)
+- [Building](#building)
+- [Running](#running)
+- [Commands](#commands)
+- [Administrator role](#administrator-role)
+- [Connecting from another machine](#connecting-from-another-machine)
+- [Notes and limitations](#notes-and-limitations)
 
-This project is a java TCP based group chat/messaging service. Once successfully running, it is a fully functioning chat messaging CLI based application. All the commands and how-to-run will be provided below.
+## Features
 
-## Getting Started
+- Multi-client group chat over TCP, one thread per client
+- Messages broadcast to all users with a `dd-MM-yyyy HH:mm:ss` timestamp
+- Private messaging between users
+- Renaming yourself at any time
+- An administrator role, granted automatically and reassigned when the current
+  admin disconnects
 
-### Installing
+## Requirements
 
-* Download any IDE of your choice that can run / compile the required java files.
-* The source code can be downloaded to any location as long as you are able to CD into it via command prompt.
+A JDK (Java 8 or later) with `javac` and `java` on your `PATH`. An IDE is
+optional — everything below works from a plain terminal.
 
-### Executing program
+## Building
 
-* Step-By-Step guide on how to run the CLI application.
-* Run Host.java, in this case I done this through Visual Studio Code however most IDE's that support java should work.
-* In the IDE run the Host.java file and open the command prompt.
-* Using command prompt, use the CD command to find the directory of the source code and execute the following:
+From the directory containing the source files:
+
+```bash
+javac Host.java Client.java
 ```
-javac Client.java
+
+## Running
+
+**1. Start the server.**
+
+```bash
+java Host
 ```
-* Once you have compiled Client.java file you can now execute it using:
-```
+
+The server listens on port `9999` and logs joins, renames, and kicks to its own
+terminal. Leave this window open.
+
+**2. Start a client** in a second terminal:
+
+```bash
 java Client
 ```
-* Once this is done it will prompt the user to enter their ID. You have now connected a user to the chat room!
-* To further connect more users to the chat room, you can open multiple instances of command prompt and use the CD command to find the directory you're using and execute the Client again.
-```
-java Client
+
+You will be prompted to enter an ID. Once you do, you are in the chat.
+
+**3. Add more users** by opening another terminal for each one and running
+`java Client` again. Every client needs its own terminal window.
+
+## Commands
+
+Commands are prefixed with `/` and are case-sensitive. Replace anything in
+`<angle brackets>` with your own text.
+
+| Command                 | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `/changeID <ID>`        | Change your display name                             |
+| `/pm <ID> <message>`    | Send a private message to one user                   |
+| `/info`                 | Show your ID and socket details (IP and port)        |
+| `/kick <ID>`            | Disconnect another user — **admin only**             |
+| `/quit`                 | Leave the chat and close your client                 |
+
+Anything not starting with `/` is broadcast to everyone.
+
+## Administrator role
+
+The first user to connect is automatically made administrator. Their ID is
+prefixed with `Admin `, so a user who enters `bob` will appear as `Admin bob`.
+
+If the administrator disconnects, the role is passed to the next connected user
+automatically, and everyone is notified.
+
+Because the prefix becomes part of the ID, commands that target the admin need
+the full name — `/pm Admin bob hello`, not `/pm bob hello`.
+
+## Connecting from another machine
+
+The client currently connects to a hardcoded address:
+
+```java
+client = new Socket("127.0.0.1", 9999);
 ```
 
-## Help
-Current Actiive Commands:  
-The prefix used for commands is "/"
-If [] are present, replace with required text.
-  
-* This command changes the users ID.
-```
-/ChangeID [ID]
-```
-* This command quits the user from the chat room.
-```
-/quit
-```
-* This command shows the connected users ID, IP and Port.
-```
-/info
-```
-* This command allows the user to private message another user.
-```
-/pm [ID] [MESSAGE]
-```
-* This command allows the admin to kick another member.
-```
-/kick [ID]
-```
+This means all clients must run on the same machine as the server. To chat
+across a network, change `127.0.0.1` to the server's IP address in `Client.java`
+and recompile. Make sure port `9999` is open on the server's firewall.
 
+## Notes and limitations
+
+- IDs cannot contain spaces. `/pm` and `/kick` split on the first space, so an ID
+  with a space in it cannot be targeted reliably.
+- The server address and port are hardcoded rather than read from arguments or a
+  config file.
+- There is no authentication. Anyone who can reach the port can join, and the
+  admin role is granted purely by connection order.
